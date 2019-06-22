@@ -10,5 +10,6 @@
   bool isIntercepting(Axes pos1, Axes pos2, Axes point);
   void makeFirstGreater(float *greater, float *lower);
   int getRandomNumber(int maxNum);
+  void drawResized(ALLEGRO_BITMAP *bitmap, Axes from, Axes to);
 
 #endif

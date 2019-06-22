@@ -1,6 +1,7 @@
 #ifndef _types_h
 #define _types_h
   #include <allegro5/allegro.h>
+  #include <allegro5/allegro_font.h>
   //Shared types
   typedef struct{
     float x;
@@ -14,6 +15,8 @@
     ALLEGRO_DISPLAY *display;
     ALLEGRO_EVENT_QUEUE *event_queue;
     ALLEGRO_TIMER *timer;
+    ALLEGRO_FONT *fontSmall;
+    ALLEGRO_FONT *fontMedium;
   } AllegroConfig;
 
   typedef struct{
