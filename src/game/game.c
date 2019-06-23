@@ -14,6 +14,10 @@
 #define DISPLAY_HEIGHT 600
 #define FPS 80
 
+#define MENU_PAUSED_HOME 1
+#define MENU_PAUSED_RESUME 2
+#define MENU_PAUSED_RESET 3
+
 typedef struct{
   int height;
   int width;
@@ -47,7 +51,15 @@ typedef struct{
   ALLEGRO_SAMPLE *damage;
 } Sounds;
 
+typedef struct{
+  MenuButton resume;
+  MenuButton reset;
+  MenuButton home;
+} MenuPaused;
+
 void initGameConfig(GameConfig *gameConfig);
+void loadMenuPaused(MenuPaused *menuPaused);
+void drawMenuPaused(MenuPaused *menuPaused);
 void loadHealthBar(ALLEGRO_BITMAP **healthBitmap);
 void drawHealthBar(ALLEGRO_BITMAP **healthBitmap, GameConfig gameConfig);
 void loadScoreBitmap(ALLEGRO_BITMAP **scoreBitmap);
@@ -57,6 +69,10 @@ void drawClockInfo(ALLEGRO_BITMAP *clockBitmap, double startTime, ALLEGRO_FONT *
 void loadGameBackground(ALLEGRO_BITMAP **backgroundBitmap);
 void loadPauseScreen(ALLEGRO_BITMAP **pauseBitmap);
 void drawPauseScreen(ALLEGRO_BITMAP *pauseBitmap);
+void loadGameOverScreen(ALLEGRO_BITMAP **gameOverBitmap);
+void drawGameOverScreen(ALLEGRO_BITMAP *gameOverBitmap);
+void loadHelpScreen(ALLEGRO_BITMAP **helpBitmap);
+void drawHelpScreen(ALLEGRO_BITMAP *helpBitmap);
 void loadAllSounds(Sounds *sounds);
 void destroySounds(Sounds *sounds);
 void drawBackground(ALLEGRO_BITMAP *backgroundBitmap);
@@ -77,19 +93,29 @@ void decreaseLife(GameConfig *gameConfig);
 void tryToUnfreezeBall(Ball *ball);
 void resetTime(double *time);
 double getTime(double time);
+bool isHoverButton(MenuPaused menuPaused, Axes position);
+int getClickedMenu(MenuPaused *menuPaused, Axes position);
+void handleClickOnMenu(GameConfig *gameConfig, MenuPaused *menuPaused, Ball *balls, Axes position);
+void unpauseGame(GameConfig *gameConfig);
+void resetGame(GameConfig *gameConfig, Ball *balls);
 
 int main(){
   AllegroConfig alConfig = {DISPLAY_WIDTH, DISPLAY_HEIGHT, FPS, NULL, NULL, NULL};
   GameConfig gameConfig;
   Platform platform;
   Ball balls[3];
+  Axes mousePosition;
   ALLEGRO_BITMAP *background = NULL;
   ALLEGRO_BITMAP *clockBitmap = NULL;
   ALLEGRO_BITMAP *pauseBitmap = NULL;
+  ALLEGRO_BITMAP *gameOverBitmap = NULL;
+  ALLEGRO_BITMAP *helpBitmap = NULL;
   ALLEGRO_BITMAP *scoreBitmap = NULL;
   ALLEGRO_BITMAP *healthBitmap[7];
+  MenuPaused menuPaused;
   ALLEGRO_EVENT event;
-  double startTime;
+  ALLEGRO_KEYBOARD_STATE keyboardState;
+  ALLEGRO_MOUSE_STATE mouseState;
   bool shouldRedraw = false;
   Sounds sounds;
 
@@ -98,24 +124,37 @@ int main(){
   }
 
   initGameConfig(&gameConfig);
+  loadMenuPaused(&menuPaused);
   loadClock(&clockBitmap);
   loadGameBackground(&background);
   loadPauseScreen(&pauseBitmap);
+  loadGameOverScreen(&gameOverBitmap);
+  loadHelpScreen(&helpBitmap);
   loadHealthBar(healthBitmap);
   loadPlataform(&platform);
   loadBalls(balls);
   loadAllSounds(&sounds);
   loadScoreBitmap(&scoreBitmap);
-  resetTime(&startTime);
 
-  while (!gameConfig.gameOver) {//Main loop
+  while (!gameConfig.exit) {//Main loop
     al_wait_for_event(alConfig.event_queue, &event);
     if(event.type == ALLEGRO_EVENT_MOUSE_AXES){
-      platform.position.x = event.mouse.x;
+      mousePosition.x = event.mouse.x;
+      mousePosition.y = event.mouse.y;
+      if(!gameConfig.pause){//Change position only if playing
+        platform.position.x = mousePosition.x;
+      }
     } else if(event.type == ALLEGRO_EVENT_TIMER){
       shouldRedraw = true;
+    } else if(event.type == ALLEGRO_EVENT_KEY_DOWN){
+      al_get_keyboard_state(&keyboardState);
+      if(event.keyboard.keycode == ALLEGRO_KEY_Q){//Quit game
+        gameConfig.exit = true;
+      } else if(event.keyboard.keycode == ALLEGRO_KEY_P || event.keyboard.keycode == ALLEGRO_KEY_H){
+        gameConfig.pause = !gameConfig.pause;
+      }
     } else if(event.type == ALLEGRO_EVENT_DISPLAY_CLOSE){
-      break;
+      gameConfig.exit = true;
     }
 
     if(shouldRedraw && al_is_event_queue_empty(alConfig.event_queue)){
@@ -123,12 +162,39 @@ int main(){
       drawBackground(background);
       drawBalls(balls, gameConfig);
       drawHealthBar(healthBitmap, gameConfig);
-      drawClockInfo(clockBitmap, startTime, alConfig.fontSmall);
+      drawClockInfo(clockBitmap, gameConfig.timeStart, alConfig.fontSmall);//TODO: Stop time when it stops
       drawScore(scoreBitmap, gameConfig, alConfig.fontMedium);
       drawPlataform(platform);
-      moveBalls(balls, gameConfig.gravity, gameConfig.level);
-      checkBallsNextAction(balls, platform, &gameConfig, sounds);
-      // drawPauseScreen(pauseBitmap);
+      if(gameConfig.pause){
+        al_show_mouse_cursor(alConfig.display);
+        al_get_mouse_state(&mouseState);
+
+        if(al_mouse_button_down(&mouseState, 1)){//Has clicked
+          handleClickOnMenu(&gameConfig, &menuPaused, balls, mousePosition);
+        }
+
+        if(isHoverButton(menuPaused, mousePosition)){//Change the cursor when hovering buttons
+          al_set_system_mouse_cursor(alConfig.display, ALLEGRO_SYSTEM_MOUSE_CURSOR_LINK);
+        } else {
+          al_set_system_mouse_cursor(alConfig.display, ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
+        }
+
+        if(al_key_down(&keyboardState, ALLEGRO_KEY_P)){
+          drawPauseScreen(pauseBitmap);
+          drawMenuPaused(&menuPaused);
+        } else {
+          drawHelpScreen(helpBitmap);
+          drawMenuPaused(&menuPaused);
+        }
+
+        if (gameConfig.gameOver){
+          drawGameOverScreen(gameOverBitmap);
+        }
+      } else {
+        moveBalls(balls, gameConfig.gravity, gameConfig.level);
+        checkBallsNextAction(balls, platform, &gameConfig, sounds);
+        al_hide_mouse_cursor(alConfig.display);
+      }
       al_flip_display();
     }
   }
@@ -143,6 +209,45 @@ void initGameConfig(GameConfig *gameConfig){
   gameConfig->life = 6;
   gameConfig->pause = false;
   gameConfig->gameOver = false;
+  gameConfig->exit = false;
+  resetTime(&gameConfig->timeStart);
+}
+
+void loadMenuPaused(MenuPaused *menuPaused){
+  int margin = 10, heightButton, widthButton, posX, posY;
+  const char *resumePath = "assets/menu/buttons/resumeButton.png";
+  const char *resetPath = "assets/menu/buttons/resetButton.png";
+  const char *homePath = "assets/menu/buttons/homeButton.png";
+
+  menuPaused->resume.bitmap = al_load_bitmap(resumePath);
+  menuPaused->reset.bitmap = al_load_bitmap(resetPath);
+  menuPaused->home.bitmap = al_load_bitmap(homePath);
+
+  widthButton = al_get_bitmap_width(menuPaused->resume.bitmap);
+  heightButton = al_get_bitmap_height(menuPaused->resume.bitmap);
+  posX = (DISPLAY_WIDTH / 2) - (widthButton / 2);
+  posY = 250;
+
+  menuPaused->home.position.x = posX;
+  menuPaused->home.position.y = posY;
+  menuPaused->home.endPosition.x = posX + widthButton;
+  menuPaused->home.endPosition.y = menuPaused->home.position.y + heightButton;
+
+  menuPaused->resume.position.x = posX;
+  menuPaused->resume.position.y = menuPaused->home.endPosition.y + margin;
+  menuPaused->resume.endPosition.x = posX + widthButton;
+  menuPaused->resume.endPosition.y = menuPaused->resume.position.y + heightButton;
+
+  menuPaused->reset.position.x = posX;
+  menuPaused->reset.position.y = menuPaused->resume.endPosition.y + margin;
+  menuPaused->reset.endPosition.x = posX + widthButton;
+  menuPaused->reset.endPosition.y = menuPaused->reset.position.y + heightButton;
+}
+
+void drawMenuPaused(MenuPaused *menuPaused){
+  al_draw_bitmap(menuPaused->home.bitmap, menuPaused->home.position.x, menuPaused->home.position.y, 0);
+  al_draw_bitmap(menuPaused->resume.bitmap, menuPaused->resume.position.x, menuPaused->resume.position.y, 0);
+  al_draw_bitmap(menuPaused->reset.bitmap, menuPaused->reset.position.x, menuPaused->reset.position.y, 0);
 }
 
 void loadHealthBar(ALLEGRO_BITMAP **healthBitmap){
@@ -213,6 +318,28 @@ void drawPauseScreen(ALLEGRO_BITMAP *pauseBitmap){
   Axes from = {0, 0};
   Axes to = {DISPLAY_WIDTH, DISPLAY_HEIGHT};
   drawResized(pauseBitmap, from, to);
+}
+
+void loadGameOverScreen(ALLEGRO_BITMAP **gameOverBitmap){
+  const char *gameOverPath = "assets/game/gameOver.png";
+  *gameOverBitmap = al_load_bitmap(gameOverPath);
+}
+
+void drawGameOverScreen(ALLEGRO_BITMAP *gameOverBitmap){
+  Axes from = {0, 0};
+  Axes to = {DISPLAY_WIDTH, DISPLAY_HEIGHT};
+  drawResized(gameOverBitmap, from, to);
+}
+
+void loadHelpScreen(ALLEGRO_BITMAP **helpBitmap){
+  const char *helpPath = "assets/game/help.png";
+  *helpBitmap = al_load_bitmap(helpPath);
+}
+
+void drawHelpScreen(ALLEGRO_BITMAP *helpBitmap){
+  Axes from = {0, 0};
+  Axes to = {DISPLAY_WIDTH, DISPLAY_HEIGHT};
+  drawResized(helpBitmap, from, to);
 }
 
 void loadAllSounds(Sounds *sounds){
@@ -410,6 +537,7 @@ void checkBallsNextAction(Ball *balls, Platform platform, GameConfig *gameConfig
       if(balls[i].shouldMove && balls[i].speed.y > 0){
         playSound(sounds.impactBall);
         handleBallTouchinPlatform(&balls[i], platform.position.y);
+        //TODO: Add inclination on touch platform
         gameConfig->score += 20;//Add score
       }
     }
@@ -508,6 +636,7 @@ void decreaseLife(GameConfig *gameConfig){
     gameConfig->life--;
     if (gameConfig->life == 0){
       gameConfig->gameOver = true;
+      gameConfig->pause = true;
     }
   }
 }
@@ -518,4 +647,44 @@ void resetTime(double *time){
 
 double getTime(double time){
   return al_get_time() - time;
+}
+
+bool isHoverButton(MenuPaused menuPaused, Axes position){
+  return isIntercepting(menuPaused.home.position, menuPaused.home.endPosition, position)
+        || isIntercepting(menuPaused.resume.position, menuPaused.resume.endPosition, position)
+        || isIntercepting(menuPaused.reset.position, menuPaused.reset.endPosition, position);
+}
+
+int getClickedMenu(MenuPaused *menuPaused, Axes position){
+  if(isIntercepting(menuPaused->home.position, menuPaused->home.endPosition, position)){
+    return MENU_PAUSED_HOME;
+  } else if (isIntercepting(menuPaused->resume.position, menuPaused->resume.endPosition, position)){
+    return MENU_PAUSED_RESUME;
+  } else if(isIntercepting(menuPaused->reset.position, menuPaused->reset.endPosition, position)){
+    return MENU_PAUSED_RESET;
+  } else {
+    return -1;//None
+  }
+}
+
+void handleClickOnMenu(GameConfig *gameConfig, MenuPaused *menuPaused, Ball *balls, Axes position){
+  switch (getClickedMenu(menuPaused, position)) {
+    case MENU_PAUSED_HOME:
+      //GO TO HOME
+      break;
+    case MENU_PAUSED_RESUME:
+      unpauseGame(gameConfig);
+      break;
+    case MENU_PAUSED_RESET:
+      resetGame(gameConfig, balls);//Same as reset
+  }
+}
+
+void unpauseGame(GameConfig *gameConfig){
+  gameConfig->pause = false;
+}
+
+void resetGame(GameConfig *gameConfig, Ball *balls){
+  initGameConfig(gameConfig);
+  initBalls(balls);
 }

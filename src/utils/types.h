@@ -20,11 +20,19 @@
   } AllegroConfig;
 
   typedef struct{
+    double timeStart;
     int score;
     int level;
     int gravity;
     int life;
     bool gameOver;
     bool pause;
+    bool exit;
   } GameConfig;
+
+  typedef struct{
+    ALLEGRO_BITMAP *bitmap;
+    Axes position;
+    Axes endPosition;//The oposite point of the image
+  } MenuButton;
 #endif

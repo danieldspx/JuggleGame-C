@@ -74,6 +74,13 @@ bool initAllegro(AllegroConfig *alConfig){
     return false;
   }
 
+  if(!al_install_keyboard()){
+    fprintf(stderr, "Erro ao instalar o teclado\n");
+    destroyAllegro(alConfig);
+    return false;
+  }
+
+  al_register_event_source(alConfig->event_queue, al_get_keyboard_event_source());
   al_register_event_source(alConfig->event_queue, al_get_mouse_event_source());
   al_register_event_source(alConfig->event_queue, al_get_display_event_source(alConfig->display));
   al_register_event_source(alConfig->event_queue, al_get_timer_event_source(alConfig->timer));

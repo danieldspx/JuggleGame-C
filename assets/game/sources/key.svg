@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   height="512pt"
+   viewBox="-45 0 512 512"
+   width="512pt"
+   version="1.1"
+   id="svg96"
+   sodipodi:docname="key.svg"
+   inkscape:version="0.92.4 5da689c313, 2019-01-14">
+  <metadata
+     id="metadata102">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs100" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1360"
+     inkscape:window-height="711"
+     id="namedview98"
+     showgrid="false"
+     inkscape:zoom="0.76904297"
+     inkscape:cx="341.33333"
+     inkscape:cy="341.33333"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg96" />
+  <path
+     d="m404.40625 17.59375c-10.863281-10.863281-25.863281-17.59375-42.40625-17.59375h-108.5l-137.5 256h288.40625zm0 0"
+     fill="#9b99c9"
+     id="path76" />
+  <path
+     d="m253.5 512h108.5c16.542969 0 31.542969-6.730469 42.40625-17.59375v-238.40625h-298.40625zm0 0"
+     fill="#6461ac"
+     id="path78" />
+  <path
+     d="m422 60c0-16.542969-6.730469-31.542969-17.59375-42.40625l-238.40625 238.40625 238.40625 238.40625c10.863281-10.863281 17.59375-25.863281 17.59375-42.40625zm0 0"
+     id="path80"
+     fill="#807dbb" />
+  <path
+     d="m253.5 0h-193.5c-16.542969 0-31.542969 6.730469-42.40625 17.59375v235.90625h235.90625zm0 0"
+     fill="#b6b5d8"
+     id="path82" />
+  <path
+     d="m145 512h108.5v-168.5h-150.90625v150.90625c10.863281 10.863281 25.863281 17.59375 42.40625 17.59375zm0 0"
+     fill="#807dbb"
+     id="path84" />
+  <path
+     d="m17.59375 17.59375c-10.863281 10.863281-17.59375 25.863281-17.59375 42.40625v180c0 16.542969 6.730469 31.542969 17.59375 42.40625l132.40625-132.40625zm0 0"
+     fill="#9b99c9"
+     id="path90" />
+  <path
+     d="m362 60h-108.5l-70 196 70 196h108.5zm0 0"
+     id="path92"
+     fill="#b6b5d8" />
+  <path
+     inkscape:connector-curvature="0"
+     style="fill:#b6b5d8;stroke-width:1"
+     d="M 253.5,512 H 60 C 43.45703,512 28.45703,505.26953 17.59375,494.40625 V 258.49999 H 253.5 Z m 0,0"
+     id="path82-7" />
+  <path
+     inkscape:connector-curvature="0"
+     style="fill:#9b99c9;fill-opacity:1;stroke-width:1"
+     d="m 1e-5,452.00002 c 0,16.54297 6.73046,31.54297 17.59374,42.40625 L 256.00001,256.00001 17.59375,17.59375 C 6.73047,28.45703 1e-5,43.45703 1e-5,60 Z m 0,0"
+     id="path80-3" />
+  <path
+     d="m60 60v180h85v212h108.5v-392zm0 0"
+     id="path94"
+     fill="#dadaeb" />
+  <path
+     inkscape:connector-curvature="0"
+     style="fill:#dadaeb;fill-opacity:1;stroke-width:1"
+     d="m 60,60 h 108.5 l 70,196.00001 -70,196 H 60 Z m 0,0"
+     id="path92-6" />
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-weight:normal;font-size:224.74142456px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#292929;fill-opacity:1;stroke:none;stroke-width:5.61853552;"
+     x="81.04818"
+     y="404.72379"
+     id="text1115"><tspan
+       sodipodi:role="line"
+       id="tspan1113"
+       x="81.04818"
+       y="404.72379"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:419.51730347px;font-family:'RobotoMono Nerd Font';-inkscape-font-specification:'RobotoMono Nerd Font Bold';stroke-width:5.61853552;fill:#292929;fill-opacity:1;">P</tspan></text>
+</svg>
