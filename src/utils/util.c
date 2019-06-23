@@ -80,6 +80,8 @@ bool initAllegro(AllegroConfig *alConfig){
     return false;
   }
 
+  al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR | ALLEGRO_MIPMAP | ALLEGRO_MAG_LINEAR);//Make rotations smooth
+
   al_register_event_source(alConfig->event_queue, al_get_keyboard_event_source());
   al_register_event_source(alConfig->event_queue, al_get_mouse_event_source());
   al_register_event_source(alConfig->event_queue, al_get_display_event_source(alConfig->display));

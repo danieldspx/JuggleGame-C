@@ -182,14 +182,14 @@ int main(){
         if(al_key_down(&keyboardState, ALLEGRO_KEY_P)){
           drawPauseScreen(pauseBitmap);
           drawMenuPaused(&menuPaused);
-        } else {
-          drawHelpScreen(helpBitmap);
+        } else if(gameConfig.gameOver){
+          drawGameOverScreen(gameOverBitmap);
           drawMenuPaused(&menuPaused);
+        }else {
+          drawHelpScreen(helpBitmap);
         }
 
-        if (gameConfig.gameOver){
-          drawGameOverScreen(gameOverBitmap);
-        }
+
       } else {
         moveBalls(balls, gameConfig.gravity, gameConfig.level);
         checkBallsNextAction(balls, platform, &gameConfig, sounds);
@@ -289,11 +289,9 @@ void loadClock(ALLEGRO_BITMAP **clockBitmap){
   const char *clockPath = "assets/game/clock.png";
   *clockBitmap = al_load_bitmap(clockPath);
 }
-
 void drawClockInfo(ALLEGRO_BITMAP *clockBitmap, double startTime, ALLEGRO_FONT *font){
   Axes clock = {20, 50};
   al_draw_bitmap(clockBitmap, clock.x, clock.y, 0);
-
   int clockWidth = al_get_bitmap_width(clockBitmap);
   char timeText[6];
   int currentTime = (int) getTime(startTime);
@@ -412,9 +410,9 @@ void drawPlataform(Platform platform){
 }
 
 void loadBalls(Ball *balls){
-  const char *ballBlue = "assets/game/balls/35x35/ballBlue.png";
-  const char *ballPink = "assets/game/balls/35x35/ballPink.png";
-  const char *ballRed = "assets/game/balls/35x35/ballRed.png";
+  const char *ballBlue = "assets/game/balls/32x32/ballBlue.png";
+  const char *ballPink = "assets/game/balls/32x32/ballPink.png";
+  const char *ballRed = "assets/game/balls/32x32/ballRed.png";
 
   balls[0].bitmap = al_load_bitmap(ballBlue);
   balls[1].bitmap = al_load_bitmap(ballPink);
@@ -425,11 +423,14 @@ void loadBalls(Ball *balls){
 
 void drawBalls(Ball *balls, GameConfig gameConfig){
   const int totalBalls = gameConfig.level == 1 ? 2 : 3;
-  int posCornerX, posCornerY;
+  int posCornerX, posCornerY, imgWidth, imgHeight;
   for(int i = 0; i < totalBalls; i++){
     posCornerX = balls[i].position.x - balls[i].radius;
     posCornerY = balls[i].position.y - balls[i].radius;
-    al_draw_bitmap(balls[i].bitmap, posCornerX, posCornerY, 0);
+    // al_draw_bitmap(balls[i].bitmap, posCornerX, posCornerY, 0);
+    imgWidth = al_get_bitmap_width(balls[i].bitmap);
+    imgHeight = al_get_bitmap_height(balls[i].bitmap);
+    al_draw_rotated_bitmap(balls[i].bitmap, imgWidth/2, imgHeight/2, posCornerX, posCornerY, balls[i].rotation, 0);
   }
 }
 
