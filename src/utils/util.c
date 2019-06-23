@@ -135,3 +135,7 @@ void drawResized(ALLEGRO_BITMAP *bitmap, Axes from, Axes to){
   int sourceH = al_get_bitmap_height(bitmap);
   al_draw_scaled_bitmap(bitmap, from.x, from.y, sourceW, sourceH, from.x, from.x, to.x, to.y, 0);
 }
+
+double absolute(double num){
+  return num > 0 ? num : -num;
+}

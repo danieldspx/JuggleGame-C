@@ -85,7 +85,7 @@ void initBalls(Ball *balls);
 void moveBalls(Ball *balls, int gravity, int currentLevel);
 bool isTouchingPlataform(Ball ball, Platform platform);
 void checkBallsNextAction(Ball *balls, Platform platform, GameConfig *gameConfig, Sounds sounds);
-void handleBallTouchinPlatform(Ball *ball, float platformY);
+void handleBallTouchinPlatform(Ball *ball, Platform platform);
 TouchingWalls getTouchingWall(Ball ball);
 bool isTouchingWall(TouchingWalls touchingWalls);
 void handleBallTouchingWall(TouchingWalls touchingWalls, Ball *ball);
@@ -98,6 +98,8 @@ int getClickedMenu(MenuPaused *menuPaused, Axes position);
 void handleClickOnMenu(GameConfig *gameConfig, MenuPaused *menuPaused, Ball *balls, Axes position);
 void unpauseGame(GameConfig *gameConfig);
 void resetGame(GameConfig *gameConfig, Ball *balls);
+void controllGameLevel(GameConfig *gameConfig, Platform *platform, Ball *balls);
+void increaseBallsSpeed(Ball *balls, int level);
 
 int main(){
   AllegroConfig alConfig = {DISPLAY_WIDTH, DISPLAY_HEIGHT, FPS, NULL, NULL, NULL};
@@ -138,6 +140,8 @@ int main(){
 
   while (!gameConfig.exit) {//Main loop
     al_wait_for_event(alConfig.event_queue, &event);
+    controllGameLevel(&gameConfig, &platform, balls);
+    increaseBallsSpeed(balls, gameConfig.level);
     if(event.type == ALLEGRO_EVENT_MOUSE_AXES){
       mousePosition.x = event.mouse.x;
       mousePosition.y = event.mouse.y;
@@ -289,6 +293,7 @@ void loadClock(ALLEGRO_BITMAP **clockBitmap){
   const char *clockPath = "assets/game/clock.png";
   *clockBitmap = al_load_bitmap(clockPath);
 }
+
 void drawClockInfo(ALLEGRO_BITMAP *clockBitmap, double startTime, ALLEGRO_FONT *font){
   Axes clock = {20, 50};
   al_draw_bitmap(clockBitmap, clock.x, clock.y, 0);
@@ -399,13 +404,13 @@ void drawPlataform(Platform platform){
   if(platform.level == 1){
     drawCounter++;
     al_draw_bitmap(platform.bitmapMid, platform.position.x - 0.5*platform.width, elevation, 0);
+  } else {
+    al_draw_bitmap(platform.bitmapRight, platform.position.x, elevation, 0);
   }
 
   drawCounter++;
   if(platform.level == 1){
     al_draw_bitmap(platform.bitmapRight, platform.position.x + 0.5*platform.width, elevation, 0);
-  } else {
-    al_draw_bitmap(platform.bitmapRight, platform.position.x, elevation, 0);
   }
 }
 
@@ -427,7 +432,6 @@ void drawBalls(Ball *balls, GameConfig gameConfig){
   for(int i = 0; i < totalBalls; i++){
     posCornerX = balls[i].position.x - balls[i].radius;
     posCornerY = balls[i].position.y - balls[i].radius;
-    // al_draw_bitmap(balls[i].bitmap, posCornerX, posCornerY, 0);
     imgWidth = al_get_bitmap_width(balls[i].bitmap);
     imgHeight = al_get_bitmap_height(balls[i].bitmap);
     al_draw_rotated_bitmap(balls[i].bitmap, imgWidth/2, imgHeight/2, posCornerX, posCornerY, balls[i].rotation, 0);
@@ -441,9 +445,9 @@ void resetBall(Ball *ball, Ball *previousBall){
   if(previousBall != NULL){
     do{
       ball->speed.y = -(5 + getRandomNumber(5));
-    }while(previousBall->speed.y == ball->speed.y);
+    }while(previousBall->speed.y == ball->speed.y);//Makes sure that the speed is different
   } else {
-    ball->speed.y = -(5 + getRandomNumber(5));
+    ball->speed.y = -(5);
   }
   ball->position.x = 50;
   ball->position.y = DISPLAY_HEIGHT - radius - 10;
@@ -475,7 +479,6 @@ void moveBalls(Ball *balls, int gravity, int currentLevel){
   float completeRound = 2*ALLEGRO_PI;
   for(int i = 0; i < totalBalls; i++){
     if(balls[i].shouldMove){
-
       balls[i].position.x += balls[i].speed.x;
       balls[i].position.y += balls[i].speed.y;
       balls[i].speed.y -= ((float)gravity/1000);
@@ -537,7 +540,7 @@ void checkBallsNextAction(Ball *balls, Platform platform, GameConfig *gameConfig
     if(isTouchingPlataform(balls[i], platform)){
       if(balls[i].shouldMove && balls[i].speed.y > 0){
         playSound(sounds.impactBall);
-        handleBallTouchinPlatform(&balls[i], platform.position.y);
+        handleBallTouchinPlatform(&balls[i], platform);
         //TODO: Add inclination on touch platform
         gameConfig->score += 20;//Add score
       }
@@ -555,10 +558,18 @@ void checkBallsNextAction(Ball *balls, Platform platform, GameConfig *gameConfig
   }
 }
 
-void handleBallTouchinPlatform(Ball *ball, float platformY){
+void handleBallTouchinPlatform(Ball *ball, Platform platform){
+  const int maxSpeedX = 7;
+  const int shiftAmount = platform.level == 1 ? platform.width*1.5 : platform.width;
+  const int newSpeedX = maxSpeedX*(absolute(platform.position.x - ball->position.x)/shiftAmount);//More distant from the platform center means higher velocity
   if(ball->speed.y > 0){//If Going down
     ball->speed.y = -ball->speed.y;//Throw ball up
-    ball->position.y = platformY-10;//Move ball up (not touching platform)
+    ball->position.y = platform.position.y;//Move ball up (not touching platform)
+    if(ball->position.x > platform.position.x){
+      ball->speed.x =  +newSpeedX;
+    } else {
+      ball->speed.x =  -newSpeedX;
+    }
   }
 }
 
@@ -682,10 +693,43 @@ void handleClickOnMenu(GameConfig *gameConfig, MenuPaused *menuPaused, Ball *bal
 }
 
 void unpauseGame(GameConfig *gameConfig){
-  gameConfig->pause = false;
+  if(!gameConfig->gameOver){
+    gameConfig->pause = false;
+  }
 }
 
 void resetGame(GameConfig *gameConfig, Ball *balls){
   initGameConfig(gameConfig);
   initBalls(balls);
+}
+
+void controllGameLevel(GameConfig *gameConfig, Platform *platform, Ball *balls){
+  if(gameConfig->score >= 200){
+    if(gameConfig->level == 1){//Coming from level 1
+      resetBall(&balls[2], &balls[1]);
+    }
+    if(gameConfig->score >= 700){//Level 4
+      gameConfig->level = 4;
+      platform->level = 2;
+    } else if(gameConfig->score >= 500){//Level 3
+      gameConfig->level = 3;
+    } else {//Level 2
+      gameConfig->level = 2;
+    }
+  } else {
+    gameConfig->level = 1;
+    platform->level = 1;
+  }
+}
+
+void increaseBallsSpeed(Ball *balls, int level){
+  if(level >= 3){
+    for(int i = 0; i < 3; i++){
+      if(balls[i].speed.y > 0 && balls[i].speed.y < 7){
+        balls[i].speed.y += 3;
+      } else if (balls[i].speed.y > -7 && balls[i].speed.y < 0){
+        balls[i].speed.y += -3;
+      }
+    }
+  }
 }

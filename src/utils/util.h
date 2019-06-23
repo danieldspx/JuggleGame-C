@@ -11,5 +11,6 @@
   void makeFirstGreater(float *greater, float *lower);
   int getRandomNumber(int maxNum);
   void drawResized(ALLEGRO_BITMAP *bitmap, Axes from, Axes to);
+  double absolute(double num);
 
 #endif
