@@ -8,6 +8,12 @@
     float y;
   } Axes;
 
+  typedef struct{
+    bool game;
+    bool menu;
+    bool rank;
+  } Activity;
+
   typedef struct {
     int width;
     int height;

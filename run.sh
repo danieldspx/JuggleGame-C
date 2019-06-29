@@ -1,3 +1,3 @@
 make
 echo "---- Running ----"
-./bin/game
+./bin/main

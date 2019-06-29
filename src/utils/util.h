@@ -12,5 +12,8 @@
   int getRandomNumber(int maxNum);
   void drawResized(ALLEGRO_BITMAP *bitmap, Axes from, Axes to);
   double absolute(double num);
+  void initGameConfig(GameConfig *gameConfig);
+  void resetTime(double *time);
+  double getTime(double time);
 
 #endif
