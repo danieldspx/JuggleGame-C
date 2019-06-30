@@ -12,10 +12,11 @@
 #include "../menu/menu.h"
 #include "../game/game.h"
 #include "../scoreboard/scoreboard.h"
+#include "../utils/variables.h"
 
-#define DISPLAY_WIDTH 800
-#define DISPLAY_HEIGHT 600
-#define FPS 80
+const int DISPLAY_WIDTH = 800;
+const int DISPLAY_HEIGHT = 600;
+const int FPS = 80;
 
 int main(){
   AllegroConfig alConfig = {DISPLAY_WIDTH, DISPLAY_HEIGHT, FPS, NULL, NULL, NULL};

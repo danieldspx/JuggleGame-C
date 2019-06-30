@@ -48,6 +48,7 @@
   int game(AllegroConfig *alConfig, GameConfig *gameConfig, Activity *activity);
   void loadMenuPaused(MenuPaused *menuPaused);
   void drawMenuPaused(MenuPaused *menuPaused);
+  void drawHelpTextHint(ALLEGRO_FONT *font);
   void loadDialogScore(ALLEGRO_BITMAP **dialogScoreBitmap);
   void drawDialogScore(ALLEGRO_BITMAP *dialogScoreBitmap, Score newScore, ALLEGRO_FONT *font);
   void loadHealthBar(ALLEGRO_BITMAP **healthBitmap);

@@ -3,9 +3,7 @@
 #include <stdlib.h>
 #include "../utils/types.h"
 #include "../utils/util.h"
-
-#define DISPLAY_WIDTH 800
-#define DISPLAY_HEIGHT 600
+#include "../utils/variables.h"
 
 #define SCORE_SIZE 10
 

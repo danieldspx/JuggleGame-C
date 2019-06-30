@@ -10,11 +10,8 @@
 #include <time.h>
 #include "../utils/types.h"
 #include "../utils/util.h"
+#include "../utils/variables.h"
 #include "../scoreboard/scoreboard.h"
-
-#define DISPLAY_WIDTH 800
-#define DISPLAY_HEIGHT 600
-#define FPS 80
 
 #define MENU_PAUSED_HOME 1
 #define MENU_PAUSED_RESUME 2
@@ -118,6 +115,7 @@ int game(AllegroConfig *alConfig, GameConfig *gameConfig, Activity *activity) {
             drawBalls(balls, *gameConfig);
             drawHealthBar(healthBitmap, *gameConfig);
             drawClockInfo(clockBitmap, gameConfig, alConfig->fontSmall);  // TODO: Stop time when it stops
+            drawHelpTextHint(alConfig->fontSmall);
             drawScore(scoreBitmap, *gameConfig, alConfig->fontMedium);
             drawPlataform(platform);
             if (gameConfig->pause) {
@@ -199,6 +197,11 @@ void drawMenuPaused(MenuPaused *menuPaused) {
     al_draw_bitmap(menuPaused->home.bitmap, menuPaused->home.position.x, menuPaused->home.position.y, 0);
     al_draw_bitmap(menuPaused->resume.bitmap, menuPaused->resume.position.x, menuPaused->resume.position.y, 0);
     al_draw_bitmap(menuPaused->reset.bitmap, menuPaused->reset.position.x, menuPaused->reset.position.y, 0);
+}
+
+void drawHelpTextHint(ALLEGRO_FONT *font){
+  al_draw_text(font, al_map_rgb(0, 0, 0), 20, 80, 0, "Pressione H");
+  al_draw_text(font, al_map_rgb(0, 0, 0), 20, 100, 0, "para obter ajudar");
 }
 
 void loadDialogScore(ALLEGRO_BITMAP **dialogScoreBitmap){
@@ -443,6 +446,7 @@ void moveBalls(Ball *balls, int gravity, int currentLevel) {
     const int totalBalls = currentLevel == 1 ? 2 : 3;
     const float rotationSpeed = 0.1;
     float completeRound = 2 * ALLEGRO_PI;
+    printf("Blue: %.2f  -   Pintk: %.2f  -   Red: %.2f\n", balls[0].speed.x, balls[1].speed.x, balls[2].speed.x);
     for (int i = 0; i < totalBalls; i++) {
         if (balls[i].shouldMove) {
             balls[i].position.x += balls[i].speed.x;
@@ -524,14 +528,11 @@ void checkBallsNextAction(Ball *balls, Platform platform, GameConfig *gameConfig
 }
 
 void handleBallTouchinPlatform(Ball *ball, Platform platform) {
-    const int maxSpeedX = 7;
-    const int shiftAmount =
-        platform.level == 1 ? platform.width * 1.5 : platform.width;
-    const int newSpeedX =
-        maxSpeedX * (absolute(platform.position.x - ball->position.x) /
-                     shiftAmount);  // More distant from the platform center
-    // means higher velocity
-    if (ball->speed.y > 0) {             // If Going down
+    const float maxSpeedX = 7;
+    const float shiftAmount = platform.level == 1 ? platform.width * 1.5 : platform.width;
+    const float newSpeedX = maxSpeedX * (absolute(platform.position.x - ball->position.x) / shiftAmount);  // More distant from the platform center
+                                                                                                          // means higher velocity
+    if (ball->speed.y > 0) { // If Going down
         ball->speed.y = -ball->speed.y;  // Throw ball up
         ball->position.y =
             platform.position.y;  // Move ball up (not touching platform)

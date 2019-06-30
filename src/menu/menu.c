@@ -10,9 +10,7 @@
 #include <allegro5/allegro_ttf.h>
 #include "../utils/util.h"
 #include "../utils/types.h"
-
-#define DISPLAY_WIDTH 800
-#define DISPLAY_HEIGHT 600
+#include "../utils/variables.h"
 
 #define MENU_PLAY 1
 #define MENU_RANK 2
