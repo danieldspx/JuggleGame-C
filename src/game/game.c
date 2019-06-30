@@ -79,7 +79,9 @@ int game(AllegroConfig *alConfig, GameConfig *gameConfig, Activity *activity) {
               if (event.keyboard.keycode == ALLEGRO_KEY_Q) {// Quit game
                   gameConfig->exit = true;
               } else if (event.keyboard.keycode == ALLEGRO_KEY_P || event.keyboard.keycode == ALLEGRO_KEY_H) {
+                if(!gameConfig->gameOver){
                   gameConfig->pause = !gameConfig->pause;
+                }
               }
             }
         } else if (event.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP) {
@@ -196,12 +198,9 @@ void loadMenuPaused(MenuPaused *menuPaused) {
 }
 
 void drawMenuPaused(MenuPaused *menuPaused) {
-    al_draw_bitmap(menuPaused->home.bitmap, menuPaused->home.position.x,
-                   menuPaused->home.position.y, 0);
-    al_draw_bitmap(menuPaused->resume.bitmap, menuPaused->resume.position.x,
-                   menuPaused->resume.position.y, 0);
-    al_draw_bitmap(menuPaused->reset.bitmap, menuPaused->reset.position.x,
-                   menuPaused->reset.position.y, 0);
+    al_draw_bitmap(menuPaused->home.bitmap, menuPaused->home.position.x, menuPaused->home.position.y, 0);
+    al_draw_bitmap(menuPaused->resume.bitmap, menuPaused->resume.position.x, menuPaused->resume.position.y, 0);
+    al_draw_bitmap(menuPaused->reset.bitmap, menuPaused->reset.position.x, menuPaused->reset.position.y, 0);
 }
 
 void loadDialogScore(ALLEGRO_BITMAP **dialogScoreBitmap){

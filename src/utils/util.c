@@ -141,7 +141,7 @@ void initGameConfig(GameConfig *gameConfig) {
     gameConfig->score = 0;
     gameConfig->level = 1;
     gameConfig->gravity = -60;  //-60 m/s²
-    gameConfig->life = 1;
+    gameConfig->life = 6;
     gameConfig->pause = false;
     gameConfig->gameOver = false;
     gameConfig->exit = false;

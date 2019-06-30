@@ -6,6 +6,8 @@
   int scoreboard(AllegroConfig *alConfig, GameConfig *gameConfig, Activity *activity);
   void loadScoreBackground(ALLEGRO_BITMAP **scoreBackgroundBitmap);
   void drawScoreBackground(ALLEGRO_BITMAP *scoreBackgroundBitmap, Score **scores, ALLEGRO_FONT *font);
+  void loadBackButton(ALLEGRO_BITMAP **backButtonBitmap);
+  void drawBackButton(ALLEGRO_BITMAP *backButtonBitmap, Axes position);
   FILE *loadScoreFileWrite();
   FILE *loadScoreFileRead();
   Score **allocateScore();

@@ -12,13 +12,19 @@
 int scoreboard(AllegroConfig *alConfig, GameConfig *gameConfig, Activity *activity){
   ALLEGRO_EVENT event;
   ALLEGRO_BITMAP *scoreBackgroundBitmap;
+  ALLEGRO_BITMAP *backButtonBitmap;
   Axes mousePosition;
   Score **scores = allocateScore();
   readScores(scores);
   bool shouldRedraw = false;
-  bool mouseBottomUp = false;
 
   loadScoreBackground(&scoreBackgroundBitmap);
+  loadBackButton(&backButtonBitmap);
+
+  int imageSize = al_get_bitmap_width(backButtonBitmap);
+  int marginButton = 30;
+  Axes positionBackButton = {DISPLAY_WIDTH - (imageSize+marginButton), DISPLAY_HEIGHT - (imageSize+marginButton)};
+  Axes positionEndBackButton = {DISPLAY_WIDTH - marginButton, DISPLAY_HEIGHT - marginButton};
 
   while (!gameConfig->exit && activity->rank) {
     al_wait_for_event(alConfig->event_queue, &event);
@@ -28,9 +34,7 @@ int scoreboard(AllegroConfig *alConfig, GameConfig *gameConfig, Activity *activi
     } else if(event.type == ALLEGRO_EVENT_TIMER){
       shouldRedraw = true;
     } else if(event.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP){
-      mouseBottomUp = true;
-    } else if(event.type == ALLEGRO_EVENT_KEY_DOWN){
-      if(event.keyboard.keycode == ALLEGRO_KEY_B){//Quit game
+      if(isIntercepting(positionBackButton, positionEndBackButton, mousePosition)){
         activity->rank = false;
         activity->menu = true;
       }
@@ -38,8 +42,17 @@ int scoreboard(AllegroConfig *alConfig, GameConfig *gameConfig, Activity *activi
       gameConfig->exit = true;
     }
 
+    // printf("(%f %f) (%f %f) (%f %f)\n", positionBackButton.x, positionBackButton.y, positionEndBackButton.x, positionEndBackButton.y, mousePosition.x, mousePosition.y);
+
+    if(isIntercepting(positionBackButton, positionEndBackButton, mousePosition)){  // Change the cursor when hovering buttons
+        al_set_system_mouse_cursor(alConfig->display, ALLEGRO_SYSTEM_MOUSE_CURSOR_LINK);
+    } else {
+        al_set_system_mouse_cursor(alConfig->display, ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
+    }
+
     if(shouldRedraw && al_is_event_queue_empty(alConfig->event_queue)){
       drawScoreBackground(scoreBackgroundBitmap, scores, alConfig->fontBig);
+      drawBackButton(backButtonBitmap, positionBackButton);
       al_flip_display();
     }
   }
@@ -71,6 +84,15 @@ void drawScoreBackground(ALLEGRO_BITMAP *scoreBackgroundBitmap, Score **scores, 
     sprintf(textScore, "#%-2d %-20s %10d", i+1, scores[i]->name, scores[i]->points);
     al_draw_text(font, al_map_rgb(0, 0, 0), textPosition.x, textPosition.y + (marginY*i), 0, textScore);
   }
+}
+
+void loadBackButton(ALLEGRO_BITMAP **backButtonBitmap){
+  const char *scorePath = "assets/scoreboard/next-page.png";
+  *backButtonBitmap = al_load_bitmap(scorePath);
+}
+
+void drawBackButton(ALLEGRO_BITMAP *backButtonBitmap, Axes position){
+  al_draw_bitmap(backButtonBitmap, position.x, position.y, 0);
 }
 
 FILE *loadScoreFileWrite(){
