@@ -1,6 +1,7 @@
 #ifndef _util_h
 #define _util_h
   #include <stdbool.h>
+  #include <stdio.h>
   #include <allegro5/allegro.h>
   #include "types.h"
 
@@ -15,5 +16,6 @@
   void initGameConfig(GameConfig *gameConfig);
   void resetTime(double *time);
   double getTime(double time);
+  long int getFileSize(FILE *file);
 
 #endif

@@ -23,6 +23,7 @@
     ALLEGRO_TIMER *timer;
     ALLEGRO_FONT *fontSmall;
     ALLEGRO_FONT *fontMedium;
+    ALLEGRO_FONT *fontBig;
   } AllegroConfig;
 
   typedef struct{
@@ -34,6 +35,7 @@
     bool gameOver;
     bool pause;
     bool exit;
+    bool hasScore;
   } GameConfig;
 
   typedef struct{
@@ -41,4 +43,9 @@
     Axes position;
     Axes endPosition;//The oposite point of the image
   } MenuButton;
+
+  typedef struct{
+    char name[20];
+    int points;
+  } Score;
 #endif

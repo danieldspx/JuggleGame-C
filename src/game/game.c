@@ -10,6 +10,7 @@
 #include <time.h>
 #include "../utils/types.h"
 #include "../utils/util.h"
+#include "../scoreboard/scoreboard.h"
 
 #define DISPLAY_WIDTH 800
 #define DISPLAY_HEIGHT 600
@@ -29,6 +30,7 @@ int game(AllegroConfig *alConfig, GameConfig *gameConfig, Activity *activity) {
     ALLEGRO_BITMAP *gameOverBitmap = NULL;
     ALLEGRO_BITMAP *helpBitmap = NULL;
     ALLEGRO_BITMAP *scoreBitmap = NULL;
+    ALLEGRO_BITMAP *dialogScoreBitmap = NULL;
     ALLEGRO_BITMAP *healthBitmap[7];
     MenuPaused menuPaused;
     ALLEGRO_EVENT event;
@@ -36,6 +38,13 @@ int game(AllegroConfig *alConfig, GameConfig *gameConfig, Activity *activity) {
     bool mouseBottomUp = false;
     bool shouldRedraw = false;
     Sounds sounds;
+    Score **scores;
+    Score newScore;
+    int scoreNameCount = 0;
+    newScore.name[0] = '|';
+    newScore.name[1] = '\0';
+
+    scores = allocateScore();
 
     loadMenuPaused(&menuPaused);
     loadClock(&clockBitmap);
@@ -48,6 +57,7 @@ int game(AllegroConfig *alConfig, GameConfig *gameConfig, Activity *activity) {
     loadBalls(balls);
     loadAllSounds(&sounds);
     loadScoreBitmap(&scoreBitmap);
+    loadDialogScore(&dialogScoreBitmap);
 
     resetGame(gameConfig, balls);
 
@@ -65,13 +75,40 @@ int game(AllegroConfig *alConfig, GameConfig *gameConfig, Activity *activity) {
             shouldRedraw = true;
         } else if (event.type == ALLEGRO_EVENT_KEY_DOWN) {
             al_get_keyboard_state(&keyboardState);
-            if (event.keyboard.keycode == ALLEGRO_KEY_Q) {  // Quit game
-                gameConfig->exit = true;
-            } else if (event.keyboard.keycode == ALLEGRO_KEY_P || event.keyboard.keycode == ALLEGRO_KEY_H) {
-                gameConfig->pause = !gameConfig->pause;
+            if(!gameConfig->hasScore){
+              if (event.keyboard.keycode == ALLEGRO_KEY_Q) {// Quit game
+                  gameConfig->exit = true;
+              } else if (event.keyboard.keycode == ALLEGRO_KEY_P || event.keyboard.keycode == ALLEGRO_KEY_H) {
+                  gameConfig->pause = !gameConfig->pause;
+              }
             }
         } else if (event.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP) {
             mouseBottomUp = gameConfig->pause ? true : false;
+        } else if (event.type == ALLEGRO_EVENT_KEY_CHAR && gameConfig->hasScore) {
+            switch(event.keyboard.keycode){
+              case ALLEGRO_KEY_ENTER:
+                gameConfig->hasScore = false;
+                newScore.points = gameConfig->score;
+                saveScore(scores, newScore);
+                break;
+              case ALLEGRO_KEY_BACKSPACE:
+                if(scoreNameCount > 0){
+                  scoreNameCount--;
+                  newScore.name[scoreNameCount] = '\0';
+                  placeCarret(newScore.name, 20, scoreNameCount - 1);
+                }
+                break;
+              default:
+                if(scoreNameCount < 20){//Name size is 20
+                  newScore.name[scoreNameCount] = event.keyboard.unichar;
+                  if(scoreNameCount <= 18){
+                    newScore.name[scoreNameCount+1] = '\0';
+                  }
+                  placeCarret(newScore.name, 20,scoreNameCount);
+                  scoreNameCount++;
+                }
+                break;
+            }
         } else if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
             gameConfig->exit = true;
         }
@@ -93,24 +130,27 @@ int game(AllegroConfig *alConfig, GameConfig *gameConfig, Activity *activity) {
                     handleClickOnMenu(activity, gameConfig, &menuPaused, balls, mousePosition);
                 }
 
-                if (isHoverButton(menuPaused, mousePosition)) {  // Change the cursor when hovering buttons
+                if (isHoverButton(menuPaused, mousePosition) && !gameConfig->hasScore) {  // Change the cursor when hovering buttons
                     al_set_system_mouse_cursor(alConfig->display, ALLEGRO_SYSTEM_MOUSE_CURSOR_LINK);
                 } else {
                     al_set_system_mouse_cursor(alConfig->display, ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
                 }
 
-                if (al_key_down(&keyboardState, ALLEGRO_KEY_P)) {
+                if (al_key_down(&keyboardState, ALLEGRO_KEY_P) && !gameConfig->hasScore) {
                     drawPauseScreen(pauseBitmap);
                     drawMenuPaused(&menuPaused);
                 } else if (gameConfig->gameOver) {
                     drawGameOverScreen(gameOverBitmap);
                     drawMenuPaused(&menuPaused);
+                    if(gameConfig->hasScore){
+                      drawDialogScore(dialogScoreBitmap, newScore, alConfig->fontBig);
+                    }
                 } else {
                     drawHelpScreen(helpBitmap);
                 }
             } else {
                 moveBalls(balls, gameConfig->gravity, gameConfig->level);
-                checkBallsNextAction(balls, platform, gameConfig, sounds);
+                checkBallsNextAction(balls, platform, gameConfig, scores, sounds);
                 al_hide_mouse_cursor(alConfig->display);
                 al_grab_mouse(alConfig->display);
             }
@@ -163,6 +203,18 @@ void drawMenuPaused(MenuPaused *menuPaused) {
                    menuPaused->reset.position.y, 0);
 }
 
+void loadDialogScore(ALLEGRO_BITMAP **dialogScoreBitmap){
+  const char *dialogPath = "assets/game/dialog.png";
+  *dialogScoreBitmap = al_load_bitmap(dialogPath);
+}
+
+void drawDialogScore(ALLEGRO_BITMAP *dialogScoreBitmap, Score newScore, ALLEGRO_FONT *font){
+  Axes from = {0, 0};
+  Axes to = {DISPLAY_WIDTH, DISPLAY_HEIGHT};
+  drawResized(dialogScoreBitmap, from, to);
+  al_draw_text(font, al_map_rgb(0, 0, 0), 210, 390, 0, newScore.name);
+}
+
 void loadHealthBar(ALLEGRO_BITMAP **healthBitmap) {
     char healthFile[30];
     for (int i = 0; i <= 6; i++) {
@@ -190,7 +242,7 @@ void drawScore(ALLEGRO_BITMAP *scoreBitmap, GameConfig gameConfig, ALLEGRO_FONT 
     al_draw_bitmap(scoreBitmap, scorePos.x, scorePos.y, 0);
     Axes scoresTextPos = {scorePos.x + margin, scorePos.y + scoreHeight / 2 + margin / 4};
     char points[7];
-    if (gameConfig.score < 999999) {
+    if (gameConfig.score < 999999) {//Max score
         sprintf(points, "%06d", gameConfig.score);
         al_draw_text(font, al_map_rgb(0, 0, 0), scoresTextPos.x, scoresTextPos.y, 0, points);
     } else {
@@ -214,8 +266,7 @@ void drawClockInfo(ALLEGRO_BITMAP *clockBitmap, double startTime,
     int seconds = currentTime % 60;
     Axes clockTime = {clock.x + clockWidth + 10, clock.y};
     sprintf(timeText, "%02d:%02d", minutes, seconds);
-    al_draw_text(font, al_map_rgb(0, 0, 0), clockTime.x, clockTime.y, 0,
-                 timeText);
+    al_draw_text(font, al_map_rgb(0, 0, 0), clockTime.x, clockTime.y, 0, timeText);
 }
 
 void loadGameBackground(ALLEGRO_BITMAP **backgroundBitmap) {
@@ -446,8 +497,7 @@ bool isTouchingPlataform(Ball ball, Platform platform) {
     return false;
 }
 
-void checkBallsNextAction(Ball *balls, Platform platform,
-                          GameConfig *gameConfig, Sounds sounds) {
+void checkBallsNextAction(Ball *balls, Platform platform, GameConfig *gameConfig, Score **scores, Sounds sounds) {
     TouchingWalls touchingWalls;
     const int totalBalls = gameConfig->level == 1 ? 2 : 3;
     for (int i = 0; i < totalBalls; i++) {
@@ -463,7 +513,7 @@ void checkBallsNextAction(Ball *balls, Platform platform,
         if (isTouchingWall(touchingWalls)) {
             handleBallTouchingWall(touchingWalls, &balls[i]);
             if (touchingWalls.bottom) {
-                decreaseLife(gameConfig);
+                decreaseLife(gameConfig, scores);
                 playSound(sounds.damage);
             } else {
                 playSound(sounds.impactBall);
@@ -564,12 +614,13 @@ void handleBallTouchingWall(TouchingWalls touchingWalls, Ball *ball) {
     }
 }
 
-void decreaseLife(GameConfig *gameConfig) {
+void decreaseLife(GameConfig *gameConfig, Score **scores) {
     if (gameConfig->life > 0) {
         gameConfig->life--;
         if (gameConfig->life == 0) {
-            gameConfig->gameOver = true;
-            gameConfig->pause = true;
+          gameConfig->gameOver = true;
+          gameConfig->pause = true;
+          gameConfig->hasScore = getScorePosition(scores, gameConfig->score) != -1 ? true : false;
         }
     }
 }
@@ -599,16 +650,18 @@ int getClickedMenu(MenuPaused *menuPaused, Axes position) {
 }
 
 void handleClickOnMenu(Activity *activity, GameConfig *gameConfig, MenuPaused *menuPaused, Ball *balls, Axes position) {
-    switch (getClickedMenu(menuPaused, position)) {
-        case MENU_PAUSED_HOME:
-            activity->game = false;
-            activity->menu = true;
-            break;
-        case MENU_PAUSED_RESUME:
-            unpauseGame(gameConfig);
-            break;
-        case MENU_PAUSED_RESET:
-            resetGame(gameConfig, balls);  // Same as reset
+    if(gameConfig->hasScore == false){//Not showing the ScoreDialog
+      switch (getClickedMenu(menuPaused, position)) {
+          case MENU_PAUSED_HOME:
+              activity->game = false;
+              activity->menu = true;
+              break;
+          case MENU_PAUSED_RESUME:
+              unpauseGame(gameConfig);
+              break;
+          case MENU_PAUSED_RESET:
+              resetGame(gameConfig, balls);  // Same as reset
+      }
     }
 }
 
@@ -652,4 +705,11 @@ void increaseBallsSpeed(Ball *balls, int level) {
             }
         }
     }
+}
+
+void placeCarret(char *name, int maxSize, int currentPos){
+  if(currentPos < (maxSize - 2)){
+    name[currentPos+1] = '|';
+    name[currentPos+2] = '\0';
+  }
 }

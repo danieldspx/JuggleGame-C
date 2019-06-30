@@ -17,7 +17,6 @@
 #define FPS 80
 
 int main(){
-
   AllegroConfig alConfig = {DISPLAY_WIDTH, DISPLAY_HEIGHT, FPS, NULL, NULL, NULL};
   GameConfig gameConfig;
   Activity activity = {false, false, false};

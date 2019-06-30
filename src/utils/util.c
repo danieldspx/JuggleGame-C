@@ -24,8 +24,9 @@ bool initAllegro(AllegroConfig *alConfig) {
     const char *robotoFont = "assets/fonts/RobotoMono-Bold.ttf";
     alConfig->fontSmall = al_load_ttf_font(robotoFont, 12, 0);
     alConfig->fontMedium = al_load_ttf_font(robotoFont, 15, 0);
+    alConfig->fontBig = al_load_ttf_font(robotoFont, 25, 0);
 
-    if (!alConfig->fontSmall || !alConfig->fontMedium) {
+    if (!alConfig->fontSmall || !alConfig->fontMedium || !alConfig->fontBig) {
         fprintf(stderr, "Erro ao carregar a fonte\n");
         return false;
     }
@@ -79,17 +80,12 @@ bool initAllegro(AllegroConfig *alConfig) {
         return false;
     }
 
-    al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR | ALLEGRO_MIPMAP |
-                            ALLEGRO_MAG_LINEAR);  // Make rotations smooth
+    al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR | ALLEGRO_MIPMAP | ALLEGRO_MAG_LINEAR);  // Make rotations smooth
 
-    al_register_event_source(alConfig->event_queue,
-                             al_get_keyboard_event_source());
-    al_register_event_source(alConfig->event_queue,
-                             al_get_mouse_event_source());
-    al_register_event_source(alConfig->event_queue,
-                             al_get_display_event_source(alConfig->display));
-    al_register_event_source(alConfig->event_queue,
-                             al_get_timer_event_source(alConfig->timer));
+    al_register_event_source(alConfig->event_queue, al_get_keyboard_event_source());
+    al_register_event_source(alConfig->event_queue, al_get_mouse_event_source());
+    al_register_event_source(alConfig->event_queue, al_get_display_event_source(alConfig->display));
+    al_register_event_source(alConfig->event_queue, al_get_timer_event_source(alConfig->timer));
     al_start_timer(alConfig->timer);
     return true;
 }
@@ -145,13 +141,22 @@ void initGameConfig(GameConfig *gameConfig) {
     gameConfig->score = 0;
     gameConfig->level = 1;
     gameConfig->gravity = -60;  //-60 m/s²
-    gameConfig->life = 6;
+    gameConfig->life = 1;
     gameConfig->pause = false;
     gameConfig->gameOver = false;
     gameConfig->exit = false;
+    gameConfig->hasScore = false;
     resetTime(&gameConfig->timeStart);
 }
 
 void resetTime(double *time) { *time = al_get_time(); }
 
 double getTime(double time) { return al_get_time() - time; }
+
+long int getFileSize(FILE *file){
+  long int size;
+  fseek(file , 0 , SEEK_END);
+  size = ftell(file);
+  rewind(file);
+  return size;
+}
