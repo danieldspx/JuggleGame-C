@@ -11,6 +11,7 @@
 #include "../utils/types.h"
 #include "../menu/menu.h"
 #include "../game/game.h"
+#include "../scoreboard/scoreboard.h"
 
 #define DISPLAY_WIDTH 800
 #define DISPLAY_HEIGHT 600
@@ -33,8 +34,10 @@ int main(){
     al_ungrab_mouse();
     if(activity.menu){
       menu(&alConfig, &gameConfig, &activity);
-    } else  if(activity.game){
+    } else if(activity.game){
       game(&alConfig, &gameConfig, &activity);
+    } else if(activity.rank){
+      scoreboard(&alConfig, &gameConfig, &activity);
     }
   }
 

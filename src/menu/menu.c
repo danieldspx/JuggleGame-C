@@ -13,7 +13,6 @@
 
 #define DISPLAY_WIDTH 800
 #define DISPLAY_HEIGHT 600
-#define FPS 80
 
 #define MENU_PLAY 1
 #define MENU_RANK 2
@@ -143,7 +142,8 @@ void handleClickOnMenuHome(Activity *activity, GameConfig *gameConfig, MenuHome 
       activity->game = true;
       break;
     case MENU_RANK:
-      //GO TO RANK
+      activity->menu = false;
+      activity->rank = true;
       break;
     case MENU_EXIT:
       activity->menu = false;

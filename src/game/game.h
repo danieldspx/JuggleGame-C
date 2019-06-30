@@ -89,5 +89,7 @@
   int getClickedMenu(MenuPaused *menuPaused, Axes position);
   void handleClickOnMenu(Activity *activity, GameConfig *gameConfig, MenuPaused *menuPaused, Ball *balls, Axes position);
   void placeCarret(char *name, int maxSize, int currentPos);
+  void resetNewScore(Score *newScore, int *counter);
+  void sanitizeScoreBeforeSave(Score *newScore, GameConfig *gameConfig, int counter);
 
 #endif

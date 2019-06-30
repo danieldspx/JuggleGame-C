@@ -41,10 +41,10 @@ int game(AllegroConfig *alConfig, GameConfig *gameConfig, Activity *activity) {
     Score **scores;
     Score newScore;
     int scoreNameCount = 0;
-    newScore.name[0] = '|';
-    newScore.name[1] = '\0';
 
     scores = allocateScore();
+    readScores(scores);
+    resetNewScore(&newScore, &scoreNameCount);
 
     loadMenuPaused(&menuPaused);
     loadClock(&clockBitmap);
@@ -88,8 +88,9 @@ int game(AllegroConfig *alConfig, GameConfig *gameConfig, Activity *activity) {
             switch(event.keyboard.keycode){
               case ALLEGRO_KEY_ENTER:
                 gameConfig->hasScore = false;
-                newScore.points = gameConfig->score;
+                sanitizeScoreBeforeSave(&newScore, gameConfig, scoreNameCount);
                 saveScore(scores, newScore);
+                resetNewScore(&newScore, &scoreNameCount);
                 break;
               case ALLEGRO_KEY_BACKSPACE:
                 if(scoreNameCount > 0){
@@ -99,12 +100,10 @@ int game(AllegroConfig *alConfig, GameConfig *gameConfig, Activity *activity) {
                 }
                 break;
               default:
-                if(scoreNameCount < 20){//Name size is 20
+                if(scoreNameCount <= 18){//Name size is 20
                   newScore.name[scoreNameCount] = event.keyboard.unichar;
-                  if(scoreNameCount <= 18){
-                    newScore.name[scoreNameCount+1] = '\0';
-                  }
-                  placeCarret(newScore.name, 20,scoreNameCount);
+                  newScore.name[scoreNameCount+1] = '\0';
+                  placeCarret(newScore.name, 20, scoreNameCount);
                   scoreNameCount++;
                 }
                 break;
@@ -157,6 +156,8 @@ int game(AllegroConfig *alConfig, GameConfig *gameConfig, Activity *activity) {
             al_flip_display();
         }
     }
+
+    freeScores(scores);
 
     return 0;
 }
@@ -255,8 +256,7 @@ void loadClock(ALLEGRO_BITMAP **clockBitmap) {
     *clockBitmap = al_load_bitmap(clockPath);
 }
 
-void drawClockInfo(ALLEGRO_BITMAP *clockBitmap, double startTime,
-                   ALLEGRO_FONT *font) {
+void drawClockInfo(ALLEGRO_BITMAP *clockBitmap, double startTime, ALLEGRO_FONT *font) {
     Axes clock = {20, 50};
     al_draw_bitmap(clockBitmap, clock.x, clock.y, 0);
     int clockWidth = al_get_bitmap_width(clockBitmap);
@@ -505,7 +505,6 @@ void checkBallsNextAction(Ball *balls, Platform platform, GameConfig *gameConfig
             if (balls[i].shouldMove && balls[i].speed.y > 0) {
                 playSound(sounds.impactBall);
                 handleBallTouchinPlatform(&balls[i], platform);
-                // TODO: Add inclination on touch platform
                 gameConfig->score += 20;  // Add score
             }
         }
@@ -712,4 +711,15 @@ void placeCarret(char *name, int maxSize, int currentPos){
     name[currentPos+1] = '|';
     name[currentPos+2] = '\0';
   }
+}
+
+void resetNewScore(Score *newScore, int *counter){
+  newScore->name[0] = '|';
+  newScore->name[1] = '\0';
+  *counter = 0;
+}
+
+void sanitizeScoreBeforeSave(Score *newScore, GameConfig *gameConfig, int counter){
+  newScore->points = gameConfig->score;
+  newScore->name[counter] = '\0';
 }
