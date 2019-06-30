@@ -146,6 +146,7 @@ void initGameConfig(GameConfig *gameConfig) {
     gameConfig->gameOver = false;
     gameConfig->exit = false;
     gameConfig->hasScore = false;
+    gameConfig->timePassed = 0;
     resetTime(&gameConfig->timeStart);
 }
 

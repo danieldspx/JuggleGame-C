@@ -82,7 +82,7 @@ void drawScoreBackground(ALLEGRO_BITMAP *scoreBackgroundBitmap, Score **scores, 
       break;
     }
     sprintf(textScore, "#%-2d %-20s %10d", i+1, scores[i]->name, scores[i]->points);
-    al_draw_text(font, al_map_rgb(0, 0, 0), textPosition.x, textPosition.y + (marginY*i), 0, textScore);
+    al_draw_text(font, al_map_rgb(255, 255, 255), textPosition.x, textPosition.y + (marginY*i), 0, textScore);
   }
 }
 

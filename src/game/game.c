@@ -79,9 +79,7 @@ int game(AllegroConfig *alConfig, GameConfig *gameConfig, Activity *activity) {
               if (event.keyboard.keycode == ALLEGRO_KEY_Q) {// Quit game
                   gameConfig->exit = true;
               } else if (event.keyboard.keycode == ALLEGRO_KEY_P || event.keyboard.keycode == ALLEGRO_KEY_H) {
-                if(!gameConfig->gameOver){
-                  gameConfig->pause = !gameConfig->pause;
-                }
+                togglePauseGame(gameConfig);
               }
             }
         } else if (event.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP) {
@@ -119,7 +117,7 @@ int game(AllegroConfig *alConfig, GameConfig *gameConfig, Activity *activity) {
             drawBackground(background);
             drawBalls(balls, *gameConfig);
             drawHealthBar(healthBitmap, *gameConfig);
-            drawClockInfo(clockBitmap, gameConfig->timeStart, alConfig->fontSmall);  // TODO: Stop time when it stops
+            drawClockInfo(clockBitmap, gameConfig, alConfig->fontSmall);  // TODO: Stop time when it stops
             drawScore(scoreBitmap, *gameConfig, alConfig->fontMedium);
             drawPlataform(platform);
             if (gameConfig->pause) {
@@ -212,7 +210,7 @@ void drawDialogScore(ALLEGRO_BITMAP *dialogScoreBitmap, Score newScore, ALLEGRO_
   Axes from = {0, 0};
   Axes to = {DISPLAY_WIDTH, DISPLAY_HEIGHT};
   drawResized(dialogScoreBitmap, from, to);
-  al_draw_text(font, al_map_rgb(0, 0, 0), 210, 390, 0, newScore.name);
+  al_draw_text(font, al_map_rgb(0, 0, 0), 210, 375, 0, newScore.name);
 }
 
 void loadHealthBar(ALLEGRO_BITMAP **healthBitmap) {
@@ -255,12 +253,17 @@ void loadClock(ALLEGRO_BITMAP **clockBitmap) {
     *clockBitmap = al_load_bitmap(clockPath);
 }
 
-void drawClockInfo(ALLEGRO_BITMAP *clockBitmap, double startTime, ALLEGRO_FONT *font) {
+void drawClockInfo(ALLEGRO_BITMAP *clockBitmap, GameConfig *gameConfig, ALLEGRO_FONT *font) {
     Axes clock = {20, 50};
     al_draw_bitmap(clockBitmap, clock.x, clock.y, 0);
     int clockWidth = al_get_bitmap_width(clockBitmap);
     char timeText[6];
-    int currentTime = (int)getTime(startTime);
+    int currentTime;
+    if(gameConfig->pause == false){
+      currentTime = (int)getTime(gameConfig->timeStart);
+    } else {
+      currentTime = gameConfig->timePassed;
+    }
     int minutes = currentTime / 60;
     int seconds = currentTime % 60;
     Axes clockTime = {clock.x + clockWidth + 10, clock.y};
@@ -633,14 +636,11 @@ bool isHoverButton(MenuPaused menuPaused, Axes position) {
 }
 
 int getClickedMenu(MenuPaused *menuPaused, Axes position) {
-    if (isIntercepting(menuPaused->home.position, menuPaused->home.endPosition,
-                       position)) {
+    if (isIntercepting(menuPaused->home.position, menuPaused->home.endPosition, position)) {
         return MENU_PAUSED_HOME;
-    } else if (isIntercepting(menuPaused->resume.position,
-                              menuPaused->resume.endPosition, position)) {
+    } else if (isIntercepting(menuPaused->resume.position, menuPaused->resume.endPosition, position)) {
         return MENU_PAUSED_RESUME;
-    } else if (isIntercepting(menuPaused->reset.position,
-                              menuPaused->reset.endPosition, position)) {
+    } else if (isIntercepting(menuPaused->reset.position, menuPaused->reset.endPosition, position)) {
         return MENU_PAUSED_RESET;
     } else {
         return -1;  // None
@@ -655,7 +655,7 @@ void handleClickOnMenu(Activity *activity, GameConfig *gameConfig, MenuPaused *m
               activity->menu = true;
               break;
           case MENU_PAUSED_RESUME:
-              unpauseGame(gameConfig);
+              togglePauseGame(gameConfig);
               break;
           case MENU_PAUSED_RESET:
               resetGame(gameConfig, balls);  // Same as reset
@@ -663,9 +663,15 @@ void handleClickOnMenu(Activity *activity, GameConfig *gameConfig, MenuPaused *m
     }
 }
 
-void unpauseGame(GameConfig *gameConfig) {
+void togglePauseGame(GameConfig *gameConfig) {
     if (!gameConfig->gameOver) {
-        gameConfig->pause = false;
+        gameConfig->pause = !gameConfig->pause;
+        if(gameConfig->pause == false){//Is resuming game
+          gameConfig->timeStart = al_get_time() - gameConfig->timePassed;//Go back in time
+          gameConfig->timePassed = 0;
+        } else {//Is pausing game
+          gameConfig->timePassed = getTime(gameConfig->timeStart);
+        }
     }
 }
 

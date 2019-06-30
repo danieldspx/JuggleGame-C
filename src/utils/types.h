@@ -28,6 +28,7 @@
 
   typedef struct{
     double timeStart;
+    double timePassed;
     int score;
     int level;
     int gravity;

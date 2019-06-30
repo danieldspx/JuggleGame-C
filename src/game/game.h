@@ -55,7 +55,7 @@
   void loadScoreBitmap(ALLEGRO_BITMAP **scoreBitmap);
   void drawScore(ALLEGRO_BITMAP *scoreBitmap, GameConfig gameConfig, ALLEGRO_FONT *font);
   void loadClock(ALLEGRO_BITMAP **clockBitmap);
-  void drawClockInfo(ALLEGRO_BITMAP *clockBitmap, double startTime, ALLEGRO_FONT *font);
+  void drawClockInfo(ALLEGRO_BITMAP *clockBitmap, GameConfig *gameConfig, ALLEGRO_FONT *font);
   void loadGameBackground(ALLEGRO_BITMAP **backgroundBitmap);
   void loadPauseScreen(ALLEGRO_BITMAP **pauseBitmap);
   void drawPauseScreen(ALLEGRO_BITMAP *pauseBitmap);
@@ -81,7 +81,7 @@
   void handleBallTouchingWall(TouchingWalls touchingWalls, Ball *ball);
   void decreaseLife(GameConfig *gameConfig, Score **scores);
   void tryToUnfreezeBall(Ball *ball);
-  void unpauseGame(GameConfig *gameConfig);
+  void togglePauseGame(GameConfig *gameConfig);
   void resetGame(GameConfig *gameConfig, Ball *balls);
   void controllGameLevel(GameConfig *gameConfig, Platform *platform, Ball *balls);
   void increaseBallsSpeed(Ball *balls, int level);
