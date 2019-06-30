@@ -446,7 +446,6 @@ void moveBalls(Ball *balls, int gravity, int currentLevel) {
     const int totalBalls = currentLevel == 1 ? 2 : 3;
     const float rotationSpeed = 0.1;
     float completeRound = 2 * ALLEGRO_PI;
-    printf("Blue: %.2f  -   Pintk: %.2f  -   Red: %.2f\n", balls[0].speed.x, balls[1].speed.x, balls[2].speed.x);
     for (int i = 0; i < totalBalls; i++) {
         if (balls[i].shouldMove) {
             balls[i].position.x += balls[i].speed.x;
