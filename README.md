@@ -1,5 +1,7 @@
 # Juggler Game - Allegro
 
+##### Oritentadora: Patrícia Pithan de Araujo Barcelos
+
 [![](https://img.shields.io/badge/Juggler_Game-Allegro-brightgreen.svg)]()
 ## Install Allegro
 Primeiramente precisamos instalar o Allegro.
